@@ -1,49 +1,71 @@
-"use client"
+import {
+  Sidebar,
+  Header,
+  StatCard,
+  PerformanceChart,
+  AssetList,
+  PromoCard,
+  WalletSidebar,
+} from "@/components/dashboard";
 
-import { useState } from "react"
-import { TerminalHeader } from "@/components/terminal/terminal-header"
-import { AssetSidebar } from "@/components/terminal/asset-sidebar"
-import { MainChart } from "@/components/terminal/main-chart"
-import { OrderBook } from "@/components/terminal/order-book"
-import { TradingPanel } from "@/components/terminal/trading-panel"
-import { BottomTabs } from "@/components/terminal/bottom-tabs"
-
-// Layout Grid:
-// [ Header (Full Width) ]
-// [ Sidebar (Fixed L) ] [ Main Chart (Flex) ] [ Order Book / Trade (Fixed R) ]
-// [ Bottom Panel (Full Width - below chart/book) ]
-
-export default function SignalTerminal() {
-  const [selectedAsset, setSelectedAsset] = useState("DRAKE-T26")
-
+export default function Home() {
   return (
-    <div className="flex flex-col h-screen w-full bg-background text-foreground overflow-hidden font-mono text-xs">
-      <TerminalHeader />
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar - Asset List */}
-        <AssetSidebar selectedId={selectedAsset} onSelect={setSelectedAsset} />
-
-        {/* Center - Chart & Info */}
-        <div className="flex flex-1 flex-col min-w-0 border-r border-border">
-          <div className="flex-1 relative">
-            <MainChart symbol={selectedAsset} />
-          </div>
-          <div className="h-1/3 border-t border-border bg-secondary/10">
-            <BottomTabs />
-          </div>
-        </div>
-
-        {/* Right - Order Book & Execution */}
-        <div className="w-[320px] flex flex-col border-l border-border bg-card/20 backdrop-blur-sm z-10">
-          <div className="flex-1 border-b border-border min-h-0">
-            <TradingPanel symbol={selectedAsset} />
-          </div>
-          <div className="h-1/2 min-h-0">
-            <OrderBook symbol={selectedAsset} />
-          </div>
-        </div>
+    <div className="flex w-full h-screen font-sans text-gray-900 bg-[#FAFAFA]">
+      <Sidebar />
+      <MainContent />
+      <div className="hidden xl:block">
+        <WalletSidebar />
       </div>
     </div>
-  )
+  );
+}
+
+function MainContent() {
+  return (
+    <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#FAFAFA]">
+      <Header />
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto custom-scroll p-8">
+        <div className="max-w-5xl mx-auto space-y-8">
+          {/* Stats & Hero */}
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <StatCard
+                  label="Total Net Worth"
+                  value="$24,592.00"
+                  trend="up"
+                  trendValue="12.4%"
+                  icon="solar:wallet-money-linear"
+                />
+                <StatCard
+                  label="Average Yield"
+                  value="9.4%"
+                  trend="up"
+                  trendValue="0.8%"
+                  icon="solar:graph-up-linear"
+                />
+                <StatCard
+                  label="Mo. Earnings"
+                  value="$1,204.50"
+                  trend="up"
+                  trendValue="4.2%"
+                  icon="solar:dollar-minimalistic-linear"
+                />
+              </div>
+
+              <PerformanceChart />
+            </div>
+
+            {/* Visual Promo Card */}
+            <PromoCard />
+          </div>
+
+          {/* Asset List */}
+          <AssetList />
+        </div>
+      </div>
+    </main>
+  );
 }
