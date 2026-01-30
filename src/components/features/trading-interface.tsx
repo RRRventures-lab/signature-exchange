@@ -22,14 +22,18 @@ export function TradingInterface({ symbol, selectedPrice }: TradingInterfaceProp
 
   const asset = getAsset(symbol);
   const holding = portfolio.find((h) => h.symbol === symbol);
-  const currentPrice = selectedPrice || asset?.price || 0;
 
-  // Update price when selectedPrice changes
+  // Update price when selectedPrice changes or on mount
   useEffect(() => {
     if (selectedPrice) {
       setPrice(selectedPrice.toString());
+    } else if (asset?.price && !price) {
+      setPrice(asset.price.toString());
     }
-  }, [selectedPrice]);
+  }, [selectedPrice, asset?.price]);
+
+  // Use user-entered price, fallback to selected price or asset price
+  const currentPrice = parseFloat(price) || selectedPrice || asset?.price || 0;
 
   const shares = parseFloat(amount) || 0;
   const total = shares * currentPrice;
@@ -57,11 +61,13 @@ export function TradingInterface({ symbol, selectedPrice }: TradingInterfaceProp
 
   const setPercentage = (percent: number) => {
     if (activeTab === "buy") {
-      const maxShares = Math.floor((balance * percent) / currentPrice);
-      setAmount(maxShares.toString());
+      // Account for 0.1% fee when calculating max shares
+      const availableForTrade = (balance * percent) / 1.001;
+      const maxShares = Math.floor(availableForTrade / currentPrice);
+      setAmount(maxShares > 0 ? maxShares.toString() : "");
     } else if (holding) {
       const sellShares = Math.floor(holding.shares * percent);
-      setAmount(sellShares.toString());
+      setAmount(sellShares > 0 ? sellShares.toString() : "");
     }
   };
 

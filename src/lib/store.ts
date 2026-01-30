@@ -100,7 +100,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     // Create transaction
     const transaction: Transaction = {
-      id: `tx-${Date.now()}`,
+      id: `tx-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       type: "buy",
       symbol,
       amount: totalWithFee,
@@ -163,7 +163,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     // Create transaction
     const transaction: Transaction = {
-      id: `tx-${Date.now()}`,
+      id: `tx-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       type: "sell",
       symbol,
       amount: totalAfterFee,
@@ -199,7 +199,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   deposit: (amount) => {
     const state = get();
     const transaction: Transaction = {
-      id: `tx-${Date.now()}`,
+      id: `tx-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       type: "deposit",
       amount,
       timestamp: new Date(),
@@ -220,7 +220,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     const transaction: Transaction = {
-      id: `tx-${Date.now()}`,
+      id: `tx-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       type: "withdraw",
       amount,
       timestamp: new Date(),

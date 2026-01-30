@@ -146,29 +146,35 @@ export function PerformanceChart({ symbol }: PerformanceChartProps) {
           </svg>
 
           {/* Hover tooltip */}
-          {hoveredPoint && pathData?.points && (
-            <>
-              <div
-                className="absolute w-2 h-2 rounded-full border-2 border-white shadow-lg"
-                style={{
-                  left: `${(pathData.points.findIndex((p) => p.timestamp === hoveredPoint.timestamp) / (pathData.points.length - 1)) * 100}%`,
-                  top: `${100 - ((hoveredPoint.price - minPrice) / priceRange) * 100}%`,
-                  backgroundColor: isPositive ? "#10B981" : "#F43F5E",
-                  transform: "translate(-50%, -50%)",
-                }}
-              />
-              <div
-                className="absolute bg-gray-900 text-white text-[10px] py-1 px-2 rounded shadow-xl whitespace-nowrap z-10"
-                style={{
-                  left: `${(pathData.points.findIndex((p) => p.timestamp === hoveredPoint.timestamp) / (pathData.points.length - 1)) * 100}%`,
-                  top: `${100 - ((hoveredPoint.price - minPrice) / priceRange) * 100 - 12}%`,
-                  transform: "translate(-50%, -100%)",
-                }}
-              >
-                ${hoveredPoint.price.toFixed(2)}
-              </div>
-            </>
-          )}
+          {hoveredPoint && pathData?.points && pathData.points.length > 1 && (() => {
+            const pointIndex = pathData.points.findIndex((p) => p.timestamp === hoveredPoint.timestamp);
+            if (pointIndex < 0) return null;
+            const leftPercent = (pointIndex / (pathData.points.length - 1)) * 100;
+            const topPercent = 100 - ((hoveredPoint.price - minPrice) / priceRange) * 100;
+            return (
+              <>
+                <div
+                  className="absolute w-2 h-2 rounded-full border-2 border-white shadow-lg"
+                  style={{
+                    left: `${leftPercent}%`,
+                    top: `${topPercent}%`,
+                    backgroundColor: isPositive ? "#10B981" : "#F43F5E",
+                    transform: "translate(-50%, -50%)",
+                  }}
+                />
+                <div
+                  className="absolute bg-gray-900 text-white text-[10px] py-1 px-2 rounded shadow-xl whitespace-nowrap z-10"
+                  style={{
+                    left: `${leftPercent}%`,
+                    top: `${topPercent - 12}%`,
+                    transform: "translate(-50%, -100%)",
+                  }}
+                >
+                  ${hoveredPoint.price.toFixed(2)}
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
     </div>
