@@ -1,92 +1,178 @@
-import { NavBar } from "@/components/layout/nav-bar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { ArrowUpRight, Wallet } from "lucide-react"
+"use client";
+
+import Link from "next/link";
+import { Music, TrendingUp, TrendingDown, PieChart } from "lucide-react";
+import { Sidebar } from "@/components/dashboard/sidebar";
+import { WalletSidebar } from "@/components/dashboard/wallet-sidebar";
+import { PerformanceChart } from "@/components/dashboard/performance-chart";
+import { Toast } from "@/components/ui/toast";
+import { useAppStore } from "@/lib/store";
+import { getAsset, calculatePortfolioValue, calculatePortfolioPnL } from "@/lib/mock-data";
 
 export default function PortfolioPage() {
-    return (
-        <div className="min-h-screen bg-background text-foreground">
-            <NavBar />
+  const portfolio = useAppStore((state) => state.portfolio);
+  const balance = useAppStore((state) => state.balance);
+  const getTotalNetWorth = useAppStore((state) => state.getTotalNetWorth);
+  const getPortfolioPnL = useAppStore((state) => state.getPortfolioPnL);
 
-            <main className="container mx-auto px-4 pt-24 pb-12">
-                <h1 className="text-3xl font-bold mb-8">My Portfolio</h1>
+  const totalNetWorth = getTotalNetWorth();
+  const portfolioValue = calculatePortfolioValue(portfolio);
+  const pnl = getPortfolioPnL();
 
-                {/* Account Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <Card className="bg-secondary/10 border-border/40 backdrop-blur-sm">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Total Balance</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold">$124,592.00</div>
-                            <p className="text-xs text-green-400 flex items-center mt-1">
-                                <ArrowUpRight className="h-3 w-3 mr-1" />
-                                +12.5% (All time)
-                            </p>
-                        </CardContent>
-                    </Card>
+  // Calculate holdings with current values
+  const holdings = portfolio.map((holding) => {
+    const asset = getAsset(holding.symbol);
+    const currentValue = asset ? asset.price * holding.shares : 0;
+    const costBasis = holding.avgPrice * holding.shares;
+    const pnlValue = currentValue - costBasis;
+    const pnlPercent = costBasis > 0 ? (pnlValue / costBasis) * 100 : 0;
 
-                    <Card className="bg-secondary/10 border-border/40 backdrop-blur-sm">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Cash Available</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold flex items-center gap-2">
-                                $24,502.50
-                                <Wallet className="h-5 w-5 text-muted-foreground" />
-                            </div>
-                        </CardContent>
-                    </Card>
+    return {
+      ...holding,
+      asset,
+      currentValue,
+      costBasis,
+      pnlValue,
+      pnlPercent,
+      allocation: portfolioValue > 0 ? (currentValue / portfolioValue) * 100 : 0,
+    };
+  }).sort((a, b) => b.currentValue - a.currentValue);
 
-                    <Card className="bg-secondary/10 border-border/40 backdrop-blur-sm">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Invested Assets</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold">$100,089.50</div>
-                            <p className="text-xs text-muted-foreground mt-1">Across 4 Assets</p>
-                        </CardContent>
-                    </Card>
+  return (
+    <div className="flex h-screen bg-[#FAFAFA] overflow-hidden">
+      <Sidebar />
+
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-gray-900">Portfolio</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Track your music IP investments
+            </p>
+          </div>
+
+          {/* Portfolio Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Total Net Worth</p>
+              <p className="text-2xl font-bold text-gray-900">
+                ${totalNetWorth.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Portfolio Value</p>
+              <p className="text-2xl font-bold text-gray-900">
+                ${portfolioValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Cash Balance</p>
+              <p className="text-2xl font-bold text-gray-900">
+                ${balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Total P&L</p>
+              <p className={`text-2xl font-bold ${pnl.value >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                {pnl.value >= 0 ? "+" : ""}${pnl.value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <p className={`text-xs ${pnl.percent >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                {pnl.percent >= 0 ? "+" : ""}{pnl.percent.toFixed(2)}%
+              </p>
+            </div>
+          </div>
+
+          {/* Chart */}
+          <div className="mb-8">
+            <PerformanceChart />
+          </div>
+
+          {/* Holdings */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-gray-100">
+              <h3 className="text-sm font-semibold text-gray-900">Holdings</h3>
+            </div>
+
+            {holdings.length > 0 ? (
+              <div className="divide-y divide-gray-50">
+                {/* Header */}
+                <div className="grid grid-cols-12 gap-4 px-5 py-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                  <div className="col-span-4">Asset</div>
+                  <div className="col-span-2 text-right">Shares</div>
+                  <div className="col-span-2 text-right">Avg. Price</div>
+                  <div className="col-span-2 text-right">Value</div>
+                  <div className="col-span-2 text-right">P&L</div>
                 </div>
 
-                {/* Holdings Table */}
-                <div className="rounded-xl border border-border/40 overflow-hidden bg-secondary/5">
-                    <Table>
-                        <TableHeader className="bg-muted/50">
-                            <TableRow className="hover:bg-transparent">
-                                <TableHead>Asset</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead className="text-right">Shares</TableHead>
-                                <TableHead className="text-right">Avg. Price</TableHead>
-                                <TableHead className="text-right">Current Price</TableHead>
-                                <TableHead className="text-right">Market Value</TableHead>
-                                <TableHead className="text-right">P/L</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow className="hover:bg-white/5">
-                                <TableCell className="font-medium">Drake: 2026 World Tour <span className="text-muted-foreground text-xs ml-2">DRAKE-T26</span></TableCell>
-                                <TableCell><Badge variant="outline">Tour</Badge></TableCell>
-                                <TableCell className="text-right font-mono">5,000</TableCell>
-                                <TableCell className="text-right font-mono">$10.00</TableCell>
-                                <TableCell className="text-right font-mono">$12.54</TableCell>
-                                <TableCell className="text-right font-mono font-medium">$62,700.00</TableCell>
-                                <TableCell className="text-right font-mono text-green-400">+$12,700.00</TableCell>
-                            </TableRow>
-                            <TableRow className="hover:bg-white/5">
-                                <TableCell className="font-medium">The Weeknd: Next Album <span className="text-muted-foreground text-xs ml-2">WEEK-A5</span></TableCell>
-                                <TableCell><Badge variant="outline">Album</Badge></TableCell>
-                                <TableCell className="text-right font-mono">2,000</TableCell>
-                                <TableCell className="text-right font-mono">$5.00</TableCell>
-                                <TableCell className="text-right font-mono">$5.40</TableCell>
-                                <TableCell className="text-right font-mono font-medium">$10,800.00</TableCell>
-                                <TableCell className="text-right font-mono text-green-400">+$800.00</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
+                {/* Rows */}
+                {holdings.map((holding) => (
+                  <Link
+                    key={holding.symbol}
+                    href={`/markets/${holding.symbol}`}
+                    className="grid grid-cols-12 gap-4 px-5 py-4 items-center hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="col-span-4 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400">
+                        <Music size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {holding.asset?.name || holding.symbol}
+                        </p>
+                        <p className="text-xs text-gray-400 font-mono">{holding.symbol}</p>
+                      </div>
+                    </div>
+                    <div className="col-span-2 text-right">
+                      <p className="text-sm font-medium text-gray-900">{holding.shares}</p>
+                    </div>
+                    <div className="col-span-2 text-right">
+                      <p className="text-sm font-medium text-gray-900">${holding.avgPrice.toFixed(2)}</p>
+                      <p className="text-xs text-gray-400">
+                        Now: ${holding.asset?.price.toFixed(2) || "-"}
+                      </p>
+                    </div>
+                    <div className="col-span-2 text-right">
+                      <p className="text-sm font-medium text-gray-900">
+                        ${holding.currentValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                      <p className="text-xs text-gray-400">{holding.allocation.toFixed(1)}%</p>
+                    </div>
+                    <div className="col-span-2 text-right">
+                      <p className={`text-sm font-medium flex items-center justify-end gap-1 ${holding.pnlValue >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                        {holding.pnlValue >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                        {holding.pnlValue >= 0 ? "+" : ""}${holding.pnlValue.toFixed(2)}
+                      </p>
+                      <p className={`text-xs ${holding.pnlPercent >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                        {holding.pnlPercent >= 0 ? "+" : ""}{holding.pnlPercent.toFixed(2)}%
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                  <PieChart size={24} className="text-gray-400" />
                 </div>
-            </main>
+                <h3 className="text-sm font-medium text-gray-900 mb-1">No holdings yet</h3>
+                <p className="text-xs text-gray-500 mb-4">
+                  Start building your portfolio by purchasing assets
+                </p>
+                <Link
+                  href="/markets"
+                  className="inline-flex items-center px-4 py-2 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-colors"
+                >
+                  Browse Marketplace
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
-    )
+      </main>
+
+      <WalletSidebar />
+      <Toast />
+    </div>
+  );
 }

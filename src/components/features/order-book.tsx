@@ -1,59 +1,91 @@
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { getOrderBook } from "@/lib/mock-data"
+"use client";
+
+import { getOrderBook } from "@/lib/mock-data";
 
 interface OrderBookProps {
-    symbol?: string
+  symbol: string;
+  onPriceSelect?: (price: number) => void;
 }
 
-export function OrderBook({ symbol = "DRAKE-T26" }: OrderBookProps) {
-    const { asks, bids, currentPrice, spread } = getOrderBook(symbol)
+export function OrderBook({ symbol, onPriceSelect }: OrderBookProps) {
+  const { asks, bids, currentPrice, spread } = getOrderBook(symbol);
 
-    return (
-        <div className="rounded-lg border border-border/40 bg-secondary/10 backdrop-blur-sm overflow-hidden">
-            <div className="p-3 border-b border-border/40 bg-muted/20">
-                <h3 className="font-semibold text-sm">Order Book</h3>
-            </div>
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+      <div className="p-3 border-b border-gray-100">
+        <h3 className="font-semibold text-sm text-gray-900">Order Book</h3>
+      </div>
 
-            <div className="grid grid-cols-3 text-xs text-muted-foreground p-2 text-right px-4">
-                <span>Price (USDC)</span>
-                <span>Amount</span>
-                <span>Total</span>
-            </div>
+      {/* Header */}
+      <div className="grid grid-cols-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider p-2 px-4 border-b border-gray-50">
+        <span>Price</span>
+        <span className="text-right">Amount</span>
+        <span className="text-right">Total</span>
+      </div>
 
-            <div className="flex flex-col h-[400px]">
-                {/* Asks (Sells) - Red */}
-                <ScrollArea className="flex-1 border-b border-border/10">
-                    <div className="flex flex-col-reverse justify-end min-h-full">
-                        {asks.map((order, i) => (
-                            <div key={i} className="grid grid-cols-3 text-right text-xs py-1 px-4 hover:bg-white/5 cursor-pointer relative">
-                                <span className="text-red-400 font-mono">{order.price.toFixed(2)}</span>
-                                <span className="font-mono">{order.amount.toLocaleString()}</span>
-                                <span className="text-muted-foreground font-mono">{order.total.toLocaleString()}</span>
-                                {/* Depth bar visual could go here */}
-                                <div className="absolute top-0 right-0 h-full bg-red-500/10 pointer-events-none" style={{ width: `${Math.min((order.amount / 3000) * 100, 100)}%` }}></div>
-                            </div>
-                        ))}
-                    </div>
-                </ScrollArea>
-
-                {/* Spread / Current Price */}
-                <div className="py-2 text-center border-y border-border/20 bg-background/50">
-                    <span className="text-lg font-bold text-foreground">{currentPrice.toFixed(2)}</span>
-                    <span className="text-xs text-muted-foreground ml-2">Spread: {spread.toFixed(2)}</span>
-                </div>
-
-                {/* Bids (Buys) - Green */}
-                <ScrollArea className="flex-1">
-                    {bids.map((order, i) => (
-                        <div key={i} className="grid grid-cols-3 text-right text-xs py-1 px-4 hover:bg-white/5 cursor-pointer relative">
-                            <span className="text-green-400 font-mono">{order.price.toFixed(2)}</span>
-                            <span className="font-mono">{order.amount.toLocaleString()}</span>
-                            <span className="text-muted-foreground font-mono">{order.total.toLocaleString()}</span>
-                            <div className="absolute top-0 right-0 h-full bg-green-500/10 pointer-events-none" style={{ width: `${Math.min((order.amount / 3000) * 100, 100)}%` }}></div>
-                        </div>
-                    ))}
-                </ScrollArea>
-            </div>
+      <div className="flex flex-col max-h-[400px]">
+        {/* Asks (Sells) - Red */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex flex-col-reverse">
+            {asks.map((order, i) => (
+              <div
+                key={`ask-${i}`}
+                onClick={() => onPriceSelect?.(order.price)}
+                className="grid grid-cols-3 text-xs py-1.5 px-4 hover:bg-rose-50 cursor-pointer relative transition-colors"
+              >
+                <span className="text-rose-500 font-mono font-medium">
+                  {order.price.toFixed(2)}
+                </span>
+                <span className="font-mono text-right text-gray-600">
+                  {order.amount.toLocaleString()}
+                </span>
+                <span className="text-gray-400 font-mono text-right">
+                  ${(order.total / 1000).toFixed(1)}k
+                </span>
+                <div
+                  className="absolute top-0 right-0 h-full bg-rose-100/50 pointer-events-none -z-10"
+                  style={{ width: `${Math.min((order.amount / 5000) * 100, 100)}%` }}
+                />
+              </div>
+            ))}
+          </div>
         </div>
-    )
+
+        {/* Spread / Current Price */}
+        <div className="py-3 text-center border-y border-gray-100 bg-gray-50/50">
+          <span className="text-lg font-bold text-gray-900">
+            ${currentPrice.toFixed(2)}
+          </span>
+          <span className="text-xs text-gray-400 ml-2">
+            Spread: ${spread.toFixed(4)}
+          </span>
+        </div>
+
+        {/* Bids (Buys) - Green */}
+        <div className="flex-1 overflow-y-auto">
+          {bids.map((order, i) => (
+            <div
+              key={`bid-${i}`}
+              onClick={() => onPriceSelect?.(order.price)}
+              className="grid grid-cols-3 text-xs py-1.5 px-4 hover:bg-emerald-50 cursor-pointer relative transition-colors"
+            >
+              <span className="text-emerald-500 font-mono font-medium">
+                {order.price.toFixed(2)}
+              </span>
+              <span className="font-mono text-right text-gray-600">
+                {order.amount.toLocaleString()}
+              </span>
+              <span className="text-gray-400 font-mono text-right">
+                ${(order.total / 1000).toFixed(1)}k
+              </span>
+              <div
+                className="absolute top-0 right-0 h-full bg-emerald-100/50 pointer-events-none -z-10"
+                style={{ width: `${Math.min((order.amount / 5000) * 100, 100)}%` }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
