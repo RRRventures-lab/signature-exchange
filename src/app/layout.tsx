@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "MAX | Music Asset Exchange",
+  title: "Signature | Music Asset Exchange",
   description: "Trade music IP assets - tours, catalogs, royalties, and more",
 };
 

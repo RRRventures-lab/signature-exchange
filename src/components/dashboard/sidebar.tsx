@@ -67,10 +67,10 @@ export function Sidebar() {
       <div>
         <Link href="/" className="flex items-center gap-2 mb-8 px-2 mt-1">
           <div className="w-7 h-7 rounded bg-gray-900 text-white flex items-center justify-center font-bold text-xs tracking-tighter shadow-md">
-            M
+            S
           </div>
           <span className="text-base font-semibold tracking-tight text-gray-900">
-            MAX<span className="text-gray-400 font-light">.fi</span>
+            Signature
           </span>
         </Link>
 

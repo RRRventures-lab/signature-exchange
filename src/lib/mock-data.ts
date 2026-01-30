@@ -1,4 +1,4 @@
-// Comprehensive Mock Data for MAX Music Asset Exchange
+// Comprehensive Mock Data for Signature Music Asset Exchange
 
 export interface Asset {
   id: string;
